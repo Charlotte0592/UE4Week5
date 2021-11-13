@@ -34,7 +34,6 @@ void UAmmoSystem::TickComponent(float DeltaTime, ELevelTick TickType, FActorComp
 
 void UAmmoSystem::Reload()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, "current:" + FString::FromInt(CurrentAmmo) + "    inventory:" + FString::FromInt(AmmoInventory));
 	int32 AmmoChange = MaxAmmo - CurrentAmmo;
 	if (AmmoInventory >= AmmoChange)
 	{
@@ -46,7 +45,5 @@ void UAmmoSystem::Reload()
 		AmmoInventory = 0;
 		CurrentAmmo += AmmoInventory;
 	}
-
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, "current:" + FString::FromInt(CurrentAmmo) + "    inventory:" + FString::FromInt(AmmoInventory));
 }
 

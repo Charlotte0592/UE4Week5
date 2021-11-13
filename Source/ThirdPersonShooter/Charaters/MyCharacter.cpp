@@ -45,8 +45,7 @@ AMyCharacter::AMyCharacter()
 
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
 
-	GetCharacterMovement()->bOrientRotationToMovement = false;
-	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 	this->bUseControllerRotationYaw = false;
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
@@ -109,11 +108,11 @@ float AMyCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& Da
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, FString::SanitizeFloat(DamageAmount));
 	if (DamageAmount >= CurrentHealth)
 	{
-		IsDead = true;
+		bIsDead = true;
 	}
 	else
 	{
-		IsDead = false;
+		bIsDead = false;
 	}
 	CurrentHealth -= DamageAmount;
 	return 0.0f;
@@ -121,7 +120,7 @@ float AMyCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& Da
 
 void AMyCharacter::MoveForward(float value)
 {
-	if (!IsDead)
+	if (!bIsDead)
 	{
 		AddMovementInput(UKismetMathLibrary::GetForwardVector(GetControlRotation()), value);
 
@@ -130,7 +129,7 @@ void AMyCharacter::MoveForward(float value)
 
 void AMyCharacter::MoveRight(float value)
 {
-	if (!IsDead)
+	if (!bIsDead)
 	{
 		AddMovementInput(UKismetMathLibrary::GetRightVector(GetControlRotation()), value);
 	}
@@ -138,7 +137,7 @@ void AMyCharacter::MoveRight(float value)
 
 void AMyCharacter::CrouchDown()
 {
-	if (!IsDead)
+	if (!bIsDead)
 	{
 		Crouch();
 	}
@@ -146,7 +145,7 @@ void AMyCharacter::CrouchDown()
 
 void AMyCharacter::CrouchUp()
 {
-	if (!IsDead)
+	if (!bIsDead)
 	{
 		UnCrouch();
 	}
@@ -154,7 +153,7 @@ void AMyCharacter::CrouchUp()
 
 void AMyCharacter::JumpStart()
 {
-	if (!IsDead)
+	if (!bIsDead)
 	{
 		bPressedJump = true;
 	}
@@ -162,7 +161,7 @@ void AMyCharacter::JumpStart()
 
 void AMyCharacter::JumpEnd()
 {
-	if (!IsDead)
+	if (!bIsDead)
 	{
 		bPressedJump = false;
 	}
@@ -170,11 +169,11 @@ void AMyCharacter::JumpEnd()
 
 void AMyCharacter::IronsightDown()
 {
-	if (!IsDead)
+	if (!bIsDead)
 	{
 		bIsHip = false;
-		// GetCharacterMovement()->bOrientRotationToMovement = false;
-		// GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 		SpringArm->SetRelativeLocation(FVector(10, 100, 70));
 		SpringArm->TargetArmLength = 200;
 	}
@@ -182,11 +181,11 @@ void AMyCharacter::IronsightDown()
 
 void AMyCharacter::IronsightUp()
 {
-	if (!IsDead)
+	if (!bIsDead)
 	{
 		bIsHip = true;
-		// GetCharacterMovement()->bOrientRotationToMovement = true;
-		// GetCharacterMovement()->bUseControllerDesiredRotation = false;
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
 		SpringArm->SetRelativeLocation(FVector(10, 10, 70));
 		SpringArm->TargetArmLength = 300;
 	}
@@ -195,9 +194,9 @@ void AMyCharacter::IronsightUp()
 
 void AMyCharacter::FireDown()
 {
-	if (!IsDead)
+	if (!bIsDead)
 	{
-		GetWorld()->GetTimerManager().SetTimer(FireTimer, this, &AMyCharacter::Fire, 0.1f, true, 0.f);
+		GetWorld()->GetTimerManager().SetTimer(FireTimer, this, &AMyCharacter::Fire, 0.15f, true, 0.f);
 		// Fire();
 	}
 }
@@ -209,36 +208,28 @@ void AMyCharacter::FireUp()
 
 void AMyCharacter::Fire()
 {
-	if (!IsDead)
+	if (!bIsDead)
 	{
-		if (!bIsHip)
+		if (!bReloading)
 		{
-			if (AmmoSystem->CurrentAmmo > 0)
+			if (!bIsHip)
 			{
-				PlayAnimMontage(FireMontage);
-				UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-				AmmoSystem->CurrentAmmo -= 1;
+				if (AmmoSystem->CurrentAmmo > 0)
+				{
+					PlayAnimMontage(FireMontage);
+					UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+					AmmoSystem->CurrentAmmo -= 1;
 
-			}
-			else
-			{
-				// No bullet
-			}
-			/*
-			FVector FireStart = GunWeapon->GetSocketLocation(TEXT("Muzzle"));
-			FVector FireEnd = TpsCamera->GetForwardVector() * 5000 + FireStart;
-			FHitResult OutHit;
-			TArray<AActor*> ActorToIngore;
-			bool IsHit = UKismetSystemLibrary::LineTraceSingle(this, FireStart, FireEnd, ETraceTypeQuery::TraceTypeQuery2, false, ActorToIngore, EDrawDebugTrace::ForDuration, OutHit, true);
-
-			if (IsHit)
-			{
-				UGameplayStatics::ApplyDamage(OutHit.GetActor(), 10.f, nullptr, this, nullptr);
-			}
-			*/
-			if (UKismetSystemLibrary::IsValid(OutHit.GetActor()))
-			{
-				UGameplayStatics::ApplyDamage(OutHit.GetActor(), 10.0f, nullptr, this, nullptr);
+				}
+				else
+				{
+					// No bullet
+				}
+				if (UKismetSystemLibrary::IsValid(OutHit.GetActor()))
+				{
+					UGameplayStatics::ApplyDamage(OutHit.GetActor(), 10.0f, nullptr, this, nullptr);
+					// 其他效果
+				}
 			}
 		}
 	}
@@ -247,15 +238,19 @@ void AMyCharacter::Fire()
 
 void AMyCharacter::Reload()
 {
-	if (AmmoSystem->CurrentAmmo < AmmoSystem->MaxAmmo)
+	if (!bReloading)
 	{
-		if (bIsHip)
+		if (AmmoSystem->CurrentAmmo < AmmoSystem->MaxAmmo && AmmoSystem->AmmoInventory > 0)
 		{
-			PlayAnimMontage(ReloadMontage_Hip);
-		} 
-		else
-		{
-			PlayAnimMontage(ReloadMontage_Aim);
+			if (bIsHip)
+			{
+				PlayAnimMontage(ReloadMontage_Hip);
+			}
+			else
+			{
+				PlayAnimMontage(ReloadMontage_Aim);
+			}
+			bReloading = true;
 		}
 	}
 }

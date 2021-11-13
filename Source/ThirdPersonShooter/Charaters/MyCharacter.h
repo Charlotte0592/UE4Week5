@@ -41,8 +41,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		class UAmmoSystem * AmmoSystem;
 
+	// ÈËÎï×´Ì¬
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		bool bIsHip = true;
+		bool bIsHip;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bReloading = false;
 
 	UPROPERTY(EditDefaultsOnly)
 		class UAnimMontage * FireMontage;
@@ -58,7 +61,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float MaxHealth = 100.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool IsDead = false;
+		bool bIsDead = false;
 
 	void MoveForward(float value);
 	void MoveRight(float value);
